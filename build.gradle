@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.0'
     id 'io.spring.dependency-management' version '1.1.6'
+    id 'jacoco'
 }
 
 group = 'com.our'
@@ -34,6 +35,42 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+jacoco {
+    toolVersion = "0.8.8" // JaCoCo 최신 버전
+}
+
+tasks.test {
+    useJUnitPlatform()
+    finalizedBy tasks.jacocoTestReport // 테스트가 끝난 후 리포트 생성
+}
+
+tasks.jacocoTestReport {
+    dependsOn tasks.test // 테스트 실행 후 리포트 생성
+    reports {
+        xml.required.set(true) // XML 리포트 활성화 (SonarQube 등에서 사용)
+        html.required.set(true) // HTML 리포트 활성화 (브라우저에서 확인 가능)
+        csv.required.set(false) // CSV 리포트 비활성화
+    }
+}
+
+tasks.jacocoTestCoverageVerification {
+    dependsOn tasks.test // 테스트 실행 후 커버리지 검증
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.8 // 최소 커버리지 80% 설정
+            }
+        }
+    }
+}
+
+tasks.check {
+    dependsOn tasks.jacocoTestCoverageVerification
+}
+
+/*
+
 tasks.named('test') {
     useJUnitPlatform()
 }
+*/

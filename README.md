@@ -3,7 +3,7 @@
 ## 개요
 Spring Boot를 사용하여 REST API 서버를 구축한 프로젝트입니다.  
 사용자는 데이터를 생성, 조회, 수정, 삭제(CRUD)할 수 있는 RESTful 엔드포인트를 제공합니다.
-
+또한 JaCoCo를 활용하여 코드 커버리지를 측정할 수 있습니다.
 ---
 
 ## 기술 스택
@@ -13,6 +13,7 @@ Spring Boot를 사용하여 REST API 서버를 구축한 프로젝트입니다.
 - **H2 Database**: 메모리 기반의 임시 데이터베이스
 - **Lombok**: 보일러플레이트 코드 제거
 - **Gradle**: 의존성 관리 및 빌드 도구
+- **JaCoCo**: 테스트 코드 커버리지 측정 도구
 
 ---
 
@@ -58,6 +59,25 @@ spring.datasource.password=
 spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
 spring.h2.console.enabled=true
 ```
+---
+
+## 테스트 및 코드
+
+### 단위 테스트:
+- src/test/java에서 테스트 코드 작성 및 실행.
+
+### 코드 커버리지 리포트 (JaCoCo):
+- 다음 명령어를 실행하여 테스트 및 커버리지 리포트를 생성합니다:
+```
+./gradlew clean test jacocoTestReport
+```
+
+- HTML 리포트 위치:
+```
+build/reports/jacoco/test/html/index.html
+```
+
+- 브라우저에서 index.html 파일을 열어 코드 커버리지 리포트를 확인합니다.
 
 ---
 
@@ -113,5 +133,18 @@ spring.h2.console.enabled=true
 | `end_time`     | `string`     | 종료 시간 (ISO8601 형식) |
 | `room_id`      | `integer`    | 회의실 ID                |
 | `participants` | `array`      | 참여자 ID 목록           |
+
+---
+
+
+## API 명세
+
+| HTTP Method | 엔드포인트              | 설명                   | 요청 본문 예시                                         |
+|-------------|-------------------------|------------------------|--------------------------------------------------|
+| **GET**     | `/api/users`           | 모든 데이터 조회        | 없음                                               |
+| **GET**     | `/api/users/{id}`      | 특정 데이터 조회        | 없음                                               |
+| **POST**    | `/api/users`           | 데이터 생성             | `{ "name": "포스트말론", "email": "post@email.com" }` |
+| **PUT**     | `/api/users/{id}`      | 데이터 수정             | `{ "name": "도자캣", "email": "dodo@mail.com" }`    |
+| **DELETE**  | `/api/users/{id}`      | 데이터 삭제             | 없음                                               |
 
 ---
