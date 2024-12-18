@@ -148,3 +148,10 @@ build/reports/jacoco/test/html/index.html
 | **DELETE**  | `/api/users/{id}`      | 데이터 삭제             | 없음                                               |
 
 ---
+
+
+
+## 참고 문서
+
+- [Gradle 공식 문서](https://docs.gradle.org)
+- [Spring Boot DevTools](https://docs.spring.io/spring-boot/3.4.0/reference/using/devtools.html)
