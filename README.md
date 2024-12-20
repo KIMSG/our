@@ -149,7 +149,14 @@ build/reports/jacoco/test/html/index.html
 
 ---
 
+## todo list 관리하기
 
+#### 마크다운으로 todo list를 관리
+- **접속URL** :  /markdown
+- **마크다운 파일 위치** : resources/static/TODO.md
+
+
+---
 
 ## 참고 문서
 

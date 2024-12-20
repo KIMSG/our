@@ -29,7 +29,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+    implementation 'com.vladsch.flexmark:flexmark-all:0.62.2'
+
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.h2database:h2'
     annotationProcessor 'org.projectlombok:lombok'
@@ -72,9 +75,11 @@ tasks.check {
     dependsOn tasks.jacocoTestCoverageVerification
 }
 
-/*
-
-tasks.named('test') {
-    useJUnitPlatform()
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
 }
-*/
+
+tasks.withType(JavaExec) {
+    systemProperty "file.encoding", "UTF-8"
+}
+
