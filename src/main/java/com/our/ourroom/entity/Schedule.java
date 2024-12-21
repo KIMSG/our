@@ -48,14 +48,20 @@ public class Schedule {
      * 관련된 회의실
      * - ManyToOne 관계: 하나의 회의실에서 여러 일정이 생성될 수 있음
      */
-    @ManyToOne
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "meeting_room_id", nullable = false)
     private MeetingRoom meetingRoom;
 
     /**
-     * 관련된 사용자
+     * 일정에 등록된 사용자들
      * - ManyToOne 관계: 하나의 사용자가 여러 일정을 가질 수 있음
      */
     @ManyToMany
+    @JoinTable(
+            name = "schedule_participants",
+            joinColumns = @JoinColumn(name = "schedule_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
     private List<Users> participants;
 
 }

@@ -33,14 +33,14 @@
 ---
 
 ## 4. 일정 관리 API (12.22 일)
-- [ ] 일정 생성 (`feature/schedule-management`)
+- [X] 일정 생성 (`feature/schedule-api`)
     - POST /schedules
-- [ ] 일정 조회 (`feature/schedule-management`)
+- [ ] 일정 조회 (`feature/schedule-api`)
     - GET /schedules
     - GET /schedules/{id}
-- [ ] 일정 수정 (`feature/schedule-management`)
+- [ ] 일정 수정 (`feature/schedule-api`)
     - PUT /schedules/{id}
-- [ ] 일정 삭제 (`feature/schedule-management`)
+- [ ] 일정 삭제 (`feature/schedule-api`)
     - DELETE /schedules/{id}
 - [ ] 일정에 참여자 추가 (`feature/schedule-participants`)
     - POST /schedules/{id}/participants
@@ -61,15 +61,14 @@
 ## 6. 테스트 및 디버깅 (12.23 월)
 - [ ] 엔티티와 초기 데이터 테스트 (`feature/test-database`)
     - Jacoco과 H2 콘솔을 활용하여 데이터 무결성 확인
-- [ ] API 통합 테스트 (`feature/test-api`)
+- [X] API 통합 테스트 (`feature/test-api`)
     - MockMvc로 API 호출 및 응답 테스트
     - 상태 코드 및 응답 데이터 검증
 
 ---
 
-## 7. 문서화 (12.23 월)
-- [ ] API 명세 작성 (`feature/docs-api`)
-    - Swagger UI 연동
+## 7. 문서화 (기능 개발 마다)
+- [X] API 명세 작성 (`feature/docs-api`)
     - 각 API에 대한 요청/응답 정의
 - [ ] 프로젝트 README 작성 (`docs/readme`)
     - 프로젝트 개요 및 실행 방법
