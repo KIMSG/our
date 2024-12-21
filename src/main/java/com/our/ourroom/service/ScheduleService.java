@@ -68,4 +68,12 @@ public class ScheduleService {
 
         return scheduleRepository.save(schedule);
     }
+
+    public List<Schedule> getAllSchedules() {
+        return scheduleRepository.findAll();
+    }
+
+    public Schedule getScheduleById(Long id) {
+        return scheduleRepository.findById(id).orElse(null);
+    }
 }
