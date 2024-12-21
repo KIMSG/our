@@ -63,4 +63,20 @@ public class ScheduleController {
         return ResponseEntity.ok(schedule);
     }
 
+    @Operation(summary = "특정 일정 삭제", description = "ID로 특정 일정을 삭제합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공적으로 일정 삭제"),
+            @ApiResponse(responseCode = "404", description = "삭제할 일정을 찾을 수 없음")
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteScheduleById(
+            @Parameter(description = "삭제할 일정 ID", required = true)
+            @PathVariable Long id) {
+        boolean deleted = scheduleService.deleteScheduleById(id);
+        if (!deleted) {
+            throw new CustomException("Resource not found", "삭제할 일정을 찾을 수 없습니다.");
+        }
+        return ResponseEntity.ok().build();
+    }
+
 }

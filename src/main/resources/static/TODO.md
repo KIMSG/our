@@ -35,12 +35,12 @@
 ## 4. 일정 관리 API (12.22 일)
 - [X] 일정 생성 (`feature/schedule-api`)
     - POST /schedules
-- [ ] 일정 조회 (`feature/schedule-api`)
+- [X] 일정 조회 (`feature/schedule-api`)
     - GET /schedules
     - GET /schedules/{id}
 - [ ] 일정 수정 (`feature/schedule-api`)
     - PUT /schedules/{id}
-- [ ] 일정 삭제 (`feature/schedule-api`)
+- [X] 일정 삭제 (`feature/schedule-api`)
     - DELETE /schedules/{id}
 - [ ] 일정에 참여자 추가 (`feature/schedule-participants`)
     - POST /schedules/{id}/participants

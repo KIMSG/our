@@ -76,4 +76,12 @@ public class ScheduleService {
     public Schedule getScheduleById(Long id) {
         return scheduleRepository.findById(id).orElse(null);
     }
+
+    public boolean deleteScheduleById(Long id) {
+        if (!scheduleRepository.existsById(id)) {
+            return false;
+        }
+        scheduleRepository.deleteById(id);
+        return true;
+    }
 }
