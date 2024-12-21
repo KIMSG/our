@@ -200,4 +200,24 @@ public class ScheduleServiceTest {
         assertNull(result);
     }
 
+    @Test
+    public void testDeleteScheduleById_Success() {
+        when(scheduleRepository.existsById(1L)).thenReturn(true);
+
+        boolean result = scheduleService.deleteScheduleById(1L);
+
+        assertTrue(result);
+        verify(scheduleRepository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    public void testDeleteScheduleById_NotFound() {
+        when(scheduleRepository.existsById(1L)).thenReturn(false);
+
+        boolean result = scheduleService.deleteScheduleById(1L);
+
+        assertFalse(result);
+        verify(scheduleRepository, never()).deleteById(anyLong());
+    }
+
 }

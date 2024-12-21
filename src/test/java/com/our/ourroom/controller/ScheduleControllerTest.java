@@ -18,8 +18,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -97,6 +96,25 @@ public class ScheduleControllerTest {
                 .andExpect(status().isBadRequest()) // 404 상태 코드 확인
                 .andExpect(jsonPath("$.error").value("Resource not found")) // error 메시지 확인
                 .andExpect(jsonPath("$.details").value("요청한 일정을 찾을 수 없습니다.")); // details 확인
+    }
+
+
+    @Test
+    public void testDeleteScheduleById_Success() throws Exception {
+        when(scheduleService.deleteScheduleById(1L)).thenReturn(true);
+
+        mockMvc.perform(delete("/api/schedules/1"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testDeleteScheduleById_NotFound() throws Exception {
+        when(scheduleService.deleteScheduleById(1L)).thenReturn(false);
+
+        mockMvc.perform(delete("/api/schedules/1"))
+                .andExpect(status().isBadRequest()) // CustomException 반환
+                .andExpect(jsonPath("$.error").value("Resource not found"))
+                .andExpect(jsonPath("$.details").value("삭제할 일정을 찾을 수 없습니다."));
     }
 
 }
