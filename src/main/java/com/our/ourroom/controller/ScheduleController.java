@@ -79,4 +79,19 @@ public class ScheduleController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "일정 수정", description = "특정 일정의 정보를 수정합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "일정 수정 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"),
+            @ApiResponse(responseCode = "404", description = "수정할 일정을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<Schedule> updateSchedule(
+            @Parameter(description = "수정할 일정 ID", required = true) @PathVariable Long id,
+            @RequestBody ScheduleRequestDTO dto) {
+        Schedule updatedSchedule = scheduleService.updateSchedule(id, dto);
+        return ResponseEntity.ok(updatedSchedule);
+    }
+
 }
