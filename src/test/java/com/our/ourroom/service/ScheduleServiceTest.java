@@ -36,6 +36,7 @@ public class ScheduleServiceTest {
     private ScheduleService scheduleService;
 
     private ScheduleRequestDTO requestDTO;
+    private Schedule testSchedule;
 
     @BeforeEach
     public void setUp() {
@@ -48,6 +49,10 @@ public class ScheduleServiceTest {
         requestDTO.setEndTime(LocalDateTime.of(2024, 12, 22, 11, 0));
         requestDTO.setMeetingRoomId(1L);
         requestDTO.setParticipantIds(List.of(1L, 2L));
+
+        testSchedule = new Schedule();
+        testSchedule.setId(1L);
+        testSchedule.setName("Team Meeting");
     }
 
     @Test
@@ -164,6 +169,35 @@ public class ScheduleServiceTest {
         assertEquals("일정을 생성하려면 최소 1명의 참가자가 필요합니다.", exception.getMessage());
     }
 
+    @Test
+    public void testGetAllSchedules() {
+        List<Schedule> schedules = List.of(testSchedule);
+        when(scheduleRepository.findAll()).thenReturn(schedules);
 
+        List<Schedule> result = scheduleService.getAllSchedules();
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("Team Meeting", result.get(0).getName());
+    }
+
+    @Test
+    public void testGetScheduleById_Success() {
+        when(scheduleRepository.findById(1L)).thenReturn(Optional.of(testSchedule));
+
+        Schedule result = scheduleService.getScheduleById(1L);
+
+        assertNotNull(result);
+        assertEquals("Team Meeting", result.getName());
+    }
+
+    @Test
+    public void testGetScheduleById_NotFound() {
+        when(scheduleRepository.findById(1L)).thenReturn(Optional.empty());
+
+        Schedule result = scheduleService.getScheduleById(1L);
+
+        assertNull(result);
+    }
 
 }

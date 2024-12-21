@@ -12,9 +12,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -29,10 +33,14 @@ public class ScheduleControllerTest {
     @MockBean
     private ScheduleService scheduleService;
 
+    private Schedule testSchedule;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        testSchedule = new Schedule();
+        testSchedule.setId(1L);
+        testSchedule.setName("Team Meeting");
     }
 
     @Test
@@ -59,4 +67,36 @@ public class ScheduleControllerTest {
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Team Meeting"));
     }
+
+    @Test
+    public void testGetAllSchedules() throws Exception {
+        List<Schedule> schedules = List.of(testSchedule);
+        when(scheduleService.getAllSchedules()).thenReturn(schedules);
+
+        mockMvc.perform(get("/api/schedules"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(schedules.size()))
+                .andExpect(jsonPath("$[0].name").value("Team Meeting"));
+    }
+
+    @Test
+    public void testGetScheduleById_Success() throws Exception {
+        when(scheduleService.getScheduleById(1L)).thenReturn(testSchedule);
+
+        mockMvc.perform(get("/api/schedules/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Team Meeting"));
+    }
+
+    @Test
+    public void testGetScheduleById_NotFound() throws Exception {
+        when(scheduleService.getScheduleById(1L)).thenReturn(null);
+
+        mockMvc.perform(get("/api/schedules/100"))
+                .andExpect(status().isBadRequest()) // 404 상태 코드 확인
+                .andExpect(jsonPath("$.error").value("Resource not found")) // error 메시지 확인
+                .andExpect(jsonPath("$.details").value("요청한 일정을 찾을 수 없습니다.")); // details 확인
+    }
+
 }
