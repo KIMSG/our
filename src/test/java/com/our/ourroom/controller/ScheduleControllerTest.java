@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -115,6 +116,30 @@ public class ScheduleControllerTest {
                 .andExpect(status().isBadRequest()) // CustomException 반환
                 .andExpect(jsonPath("$.error").value("Resource not found"))
                 .andExpect(jsonPath("$.details").value("삭제할 일정을 찾을 수 없습니다."));
+    }
+
+    @Test
+    public void testUpdateSchedule_Success() throws Exception {
+        Schedule updatedSchedule = new Schedule();
+        updatedSchedule.setId(1L);
+        updatedSchedule.setName("Updated Meeting");
+
+        when(scheduleService.updateSchedule(anyLong(), any(ScheduleRequestDTO.class))).thenReturn(updatedSchedule);
+
+        String updateJson = "{" +
+                "\"name\":\"Updated Meeting\"," +
+                "\"startTime\":\"2024-12-23T10:00:00\"," +
+                "\"endTime\":\"2024-12-23T11:00:00\"," +
+                "\"meetingRoomId\":1," +
+                "\"participantIds\":[1,2]}" +
+                "}";
+
+        mockMvc.perform(put("/api/schedules/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updateJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Updated Meeting"));
     }
 
 }

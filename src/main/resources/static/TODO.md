@@ -38,7 +38,7 @@
 - [X] 일정 조회 (`feature/schedule-api`)
     - GET /schedules
     - GET /schedules/{id}
-- [ ] 일정 수정 (`feature/schedule-api`)
+- [X] 일정 수정 (`feature/schedule-api`)
     - PUT /schedules/{id}
 - [X] 일정 삭제 (`feature/schedule-api`)
     - DELETE /schedules/{id}

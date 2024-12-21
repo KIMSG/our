@@ -220,4 +220,55 @@ public class ScheduleServiceTest {
         verify(scheduleRepository, never()).deleteById(anyLong());
     }
 
+    @Test
+    public void testUpdateSchedule_Success() {
+        // Mock 기존 일정
+        Schedule existingSchedule = new Schedule();
+        existingSchedule.setId(1L);
+        existingSchedule.setName("Existing Schedule");
+
+        MeetingRoom mockMeetingRoom = new MeetingRoom();
+        mockMeetingRoom.setId(1L);
+        mockMeetingRoom.setCapacity(10);
+
+        // Mock 사용자 설정
+        Users mockUser = new Users();
+        mockUser.setId(1L);
+        mockUser.setName("Test User");
+
+        when(scheduleRepository.findById(1L)).thenReturn(Optional.of(existingSchedule));
+        when(meetingRoomRepository.findById(1L)).thenReturn(Optional.of(mockMeetingRoom));
+        when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(mockUser));
+        when(scheduleRepository.save(any(Schedule.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ScheduleRequestDTO dto = new ScheduleRequestDTO();
+        dto.setMeetingRoomId(1L); // Mock MeetingRoomId와 일치
+        dto.setName("Updated Name");
+        dto.setStartTime(LocalDateTime.of(2024, 12, 23, 10, 0));
+        dto.setEndTime(LocalDateTime.of(2024, 12, 23, 11, 0));
+        dto.setParticipantIds(List.of(1L));
+
+        // Test
+        Schedule updatedSchedule = scheduleService.updateSchedule(1L, dto);
+
+        // Assertions
+        assertNotNull(updatedSchedule, "Updated schedule should not be null");
+        assertEquals("Updated Name", updatedSchedule.getName());
+    }
+
+    @Test
+    public void testUpdateSchedule_ThrowsCustomException() {
+        // Given: 해당 ID의 일정이 없을 때
+        when(scheduleRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // When & Then: 예외가 발생하는지 검증
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            scheduleService.updateSchedule(1L, new ScheduleRequestDTO());
+        });
+
+        assertEquals("Resource not found", exception.getError());
+        assertEquals("수정할 일정을 찾을 수 없습니다.", exception.getMessage());
+    }
+
+
 }
