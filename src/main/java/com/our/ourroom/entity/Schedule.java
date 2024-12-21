@@ -1,5 +1,7 @@
 package com.our.ourroom.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -53,7 +55,7 @@ public class Schedule {
      * 관련된 사용자
      * - ManyToOne 관계: 하나의 사용자가 여러 일정을 가질 수 있음
      */
-    @OneToMany
+    @ManyToMany
     private List<Users> participants;
 
 }
