@@ -15,15 +15,11 @@
 ---
 
 ## 2. 사용자 관리 API (12.21 토)
-- [ ] 사용자 생성 (`feature/user-management`)
+- [X] 사용자 생성 (`feature/user-api`)
     - POST /users
-- [ ] 사용자 조회 (`feature/user-management`)
+- [X] 사용자 조회 (`feature/user-api`)
     - GET /users
     - GET /users/{id}
-- [ ] 사용자 업데이트 (`feature/user-management`)
-    - PUT /users/{id}
-- [ ] 사용자 삭제 (`feature/user-management`)
-    - DELETE /users/{id}
 
 ---
 
@@ -33,10 +29,6 @@
 - [ ] 회의실 조회 (`feature/meetingroom-management`)
     - GET /rooms
     - GET /rooms/{id}
-- [ ] 회의실 업데이트 (`feature/meetingroom-management`)
-    - PUT /rooms/{id}
-- [ ] 회의실 삭제 (`feature/meetingroom-management`)
-    - DELETE /rooms/{id}
 - [ ] 회의실 예약 가능 여부 확인 (`feature/meetingroom-availability`)
     - GET /rooms/{id}/availability
 
