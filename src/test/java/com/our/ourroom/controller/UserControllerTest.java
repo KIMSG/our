@@ -4,7 +4,6 @@ import com.our.ourroom.entity.Users;
 import com.our.ourroom.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -89,6 +88,17 @@ public class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Test User"));
+    }
+
+    @Test
+    public void testGetUserById_NotFound() throws Exception {
+        // Mock: 존재하지 않는 ID로 조회
+        when(userService.getUserById(1L)).thenReturn(null);
+
+        // GET 요청
+        mockMvc.perform(get("/api/users/1"))
+                .andExpect(status().isNotFound()) // HTTP 404 상태 확인
+                .andExpect(jsonPath("$").doesNotExist()); // body가 비어 있는지 확인
     }
 
 }

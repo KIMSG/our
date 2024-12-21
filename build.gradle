@@ -62,7 +62,8 @@ tasks.jacocoTestReport {
         fileTree(dir: it, exclude: [
                 '**/MarkdownPreviewController.class',  // 특정 클래스 제외
                 '**/ServletInitializer.class',     // 추가로 제외할 클래스
-                '**/OurRoomApplication.class'
+                '**/OurRoomApplication.class',
+                '**/GlobalExceptionHandler.class'
         ])
     }))
 }

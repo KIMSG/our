@@ -37,4 +37,5 @@ public class MeetingRoom {
      * - 해당 회의실이 수용할 수 있는 최대 인원
      */
     private int capacity;
+
 }
