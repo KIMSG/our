@@ -24,12 +24,10 @@
 ---
 
 ## 3. 회의실 관리 API (12.21 토)
-- [ ] 회의실 생성 (`feature/meetingroom-management`)
-    - POST /rooms
-- [ ] 회의실 조회 (`feature/meetingroom-management`)
+- [X] 회의실 조회 (`feature/meetingroom-api`)
     - GET /rooms
     - GET /rooms/{id}
-- [ ] 회의실 예약 가능 여부 확인 (`feature/meetingroom-availability`)
+- [ ] 회의실 예약 가능 여부 확인 (`feature/meetingroom-api`)
     - GET /rooms/{id}/availability
 
 ---
