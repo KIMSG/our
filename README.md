@@ -155,6 +155,21 @@ build/reports/jacoco/test/html/index.html
 - **접속URL** :  /markdown
 - **마크다운 파일 위치** : resources/static/TODO.md
 
+---
+
+## commit 관리하기
+
+#### 타입(Type) 종류
+- feat: 새로운 기능 추가
+- fix: 버그 수정
+- refactor: 코드 리팩토링 (기능 변화 없음)
+- docs: 문서 수정 (README.md 등)
+- test: 테스트 코드 추가/수정
+- chore: 빌드 설정, 패키지 관리, 기타 작업
+- style: 코드 스타일 수정 (포맷팅, 세미콜론 추가 등)
+- perf: 성능 개선
+- ci: CI/CD 설정 수정
+
 
 ---
 
