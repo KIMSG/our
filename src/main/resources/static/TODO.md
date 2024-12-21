@@ -1,13 +1,13 @@
 # 📋 프로젝트 To-Do List
 
 ## 1. 엔티티 설계  (12.21 토)
-- [ ] Users 엔티티 생성 (`feature/entity-users`)
+- [X] Users 엔티티 생성 (`feature/entity-setup`)
     - 사용자 ID, 이름 필드 정의
     - MeetingRoom과의 Many-to-One 관계 매핑
-- [ ] MeetingRoom 엔티티 생성 (`feature/entity-meetingroom`)
+- [X] MeetingRoom 엔티티 생성 (`feature/entity-setup`)
     - 회의실 ID, 이름, 수용 인원 필드 정의
     - Users와의 One-to-Many 관계 매핑
-- [ ] Schedule 엔티티 생성 (`feature/entity-schedule`)
+- [X] Schedule 엔티티 생성 (`feature/entity-setup`)
     - 일정 ID, 이름, 시작/종료 시간, 참여자 목록 필드 정의
     - MeetingRoom과의 Many-to-One 관계 매핑
     - Users와의 Many-to-Many 관계 매핑
