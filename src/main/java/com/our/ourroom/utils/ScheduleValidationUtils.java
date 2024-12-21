@@ -31,7 +31,12 @@ public class ScheduleValidationUtils {
     }
 
     public List<Users> validateParticipants(List<Long> participantIds, int roomCapacity) {
+        if (participantIds.isEmpty()) {
+            System.out.println("participantIds is empty: " + participantIds); // 디버깅
+            throw new CustomException("Invalid users", "일정을 생성하려면 최소 1명 이상의 참가자가 필요합니다.");
+        }
         List<Users> participants = userRepository.findAllById(participantIds);
+        System.out.println("participants found: " + participants); // 디버깅
 
         // 요청된 사용자 ID 리스트와 실제 존재하는 사용자 ID 리스트 비교
         List<Long> foundIds = participants.stream().map(Users::getId).toList();
@@ -39,10 +44,6 @@ public class ScheduleValidationUtils {
 
         if (!invalidIds.isEmpty()) {
             throw new CustomException("Invalid users", "다음 사용자 ID는 유효하지 않습니다: " + invalidIds);
-        }
-
-        if (participants.isEmpty()) {
-            throw new CustomException("Exceeding room capacity", "일정을 생성하려면 최소 1명 이상의 참가자가 필요합니다.");
         }
 
         if (participants.size() > roomCapacity) {

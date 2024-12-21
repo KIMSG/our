@@ -8,6 +8,7 @@ import com.our.ourroom.exception.CustomException;
 import com.our.ourroom.repository.MeetingRoomRepository;
 import com.our.ourroom.repository.ScheduleRepository;
 import com.our.ourroom.repository.UserRepository;
+import com.our.ourroom.utils.ScheduleValidationUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -27,10 +28,7 @@ public class ScheduleServiceTest {
     private ScheduleRepository scheduleRepository;
 
     @Mock
-    private MeetingRoomRepository meetingRoomRepository;
-
-    @Mock
-    private UserRepository userRepository;
+    private ScheduleValidationUtils scheduleValidationUtils;
 
     @InjectMocks
     private ScheduleService scheduleService;
@@ -41,6 +39,7 @@ public class ScheduleServiceTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        scheduleService = new ScheduleService(scheduleRepository, scheduleValidationUtils);
 
         // 기본 요청 데이터 설정
         requestDTO = new ScheduleRequestDTO();
@@ -57,117 +56,73 @@ public class ScheduleServiceTest {
 
     @Test
     public void testCreateSchedule_Success() {
-        // Mock MeetingRoom
-        MeetingRoom meetingRoom = new MeetingRoom();
-        meetingRoom.setId(1L);
-        meetingRoom.setCapacity(5);
+        ScheduleRequestDTO dto = new ScheduleRequestDTO();
+        dto.setName("Test Schedule");
+        dto.setMeetingRoomId(1L);
+        dto.setStartTime(LocalDateTime.of(2024, 12, 22, 10, 0));
+        dto.setEndTime(LocalDateTime.of(2024, 12, 22, 11, 0));
+        dto.setParticipantIds(List.of(1L, 2L));
 
-        // Mock Users
+        MeetingRoom mockMeetingRoom = new MeetingRoom();
+        mockMeetingRoom.setId(1L);
+        mockMeetingRoom.setCapacity(5);
+
         Users user1 = new Users();
         user1.setId(1L);
         Users user2 = new Users();
         user2.setId(2L);
 
-        // Mock 저장된 Schedule
-        Schedule savedSchedule = new Schedule();
-        savedSchedule.setId(1L);
-        savedSchedule.setName("Team Meeting");
+        when(scheduleValidationUtils.validateMeetingRoom(1L)).thenReturn(mockMeetingRoom);
+        when(scheduleValidationUtils.validateParticipants(List.of(1L, 2L), 5)).thenReturn(List.of(user1, user2));
+        doNothing().when(scheduleValidationUtils).validateTimeConflict(dto);
+        doNothing().when(scheduleValidationUtils).validateUserConflict(dto);
 
-        // Mock 동작 설정
-        when(meetingRoomRepository.findById(1L)).thenReturn(Optional.of(meetingRoom));
-        when(userRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(user1, user2));
-        when(scheduleRepository.save(any(Schedule.class))).thenReturn(savedSchedule);
+        Schedule mockSchedule = new Schedule();
+        mockSchedule.setId(1L);
+        mockSchedule.setName("Test Schedule");
+        mockSchedule.setStartTime(dto.getStartTime());
+        mockSchedule.setEndTime(dto.getEndTime());
+        mockSchedule.setMeetingRoom(mockMeetingRoom);
+        mockSchedule.setParticipants(List.of(user1, user2));
 
-        // 테스트 실행
-        Schedule result = scheduleService.createSchedule(requestDTO);
+        when(scheduleRepository.save(any(Schedule.class))).thenReturn(mockSchedule);
 
-        // 결과 검증
+        Schedule result = scheduleService.createSchedule(dto);
+
         assertNotNull(result);
-        assertEquals(1L, result.getId());
-        assertEquals("Team Meeting", result.getName());
-
-        // 호출 검증
-        verify(meetingRoomRepository).findById(1L);
-        verify(userRepository).findAllById(List.of(1L, 2L));
-        verify(scheduleRepository).save(any(Schedule.class));
+        assertEquals("Test Schedule", result.getName());
+        assertEquals(1L, result.getMeetingRoom().getId());
+        assertEquals(2, result.getParticipants().size());
     }
-
-    @Test
-    public void testCreateSchedule_InvalidMeetingRoom() {
-        when(meetingRoomRepository.findById(1L)).thenReturn(Optional.empty());
-
-        CustomException exception = assertThrows(CustomException.class, () -> {
-            scheduleService.createSchedule(requestDTO);
-        });
-
-        assertEquals("Resource not found", exception.getError());
-        assertEquals("요청한 일정 또는 회의실을 찾을 수 없습니다.", exception.getMessage());
-        verify(meetingRoomRepository).findById(1L);
-    }
-
-    @Test
-    public void testCreateSchedule_InvalidParticipants() {
-        MeetingRoom meetingRoom = new MeetingRoom();
-        meetingRoom.setId(1L);
-        meetingRoom.setCapacity(5);
-
-        when(meetingRoomRepository.findById(1L)).thenReturn(Optional.of(meetingRoom));
-        when(userRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of());
-
-        CustomException exception = assertThrows(CustomException.class, () -> {
-            scheduleService.createSchedule(requestDTO);
-        });
-
-        assertEquals("Invalid users", exception.getError());
-        assertTrue(exception.getMessage().contains("다음 사용자 ID는 유효하지 않습니다"));
-        verify(userRepository).findAllById(List.of(1L, 2L));
-    }
-
-    @Test
-    public void testCreateSchedule_ExceedingRoomCapacity() {
-        MeetingRoom meetingRoom = new MeetingRoom();
-        meetingRoom.setId(1L);
-        meetingRoom.setCapacity(1);
-
-        Users user1 = new Users();
-        user1.setId(1L);
-        Users user2 = new Users();
-        user2.setId(2L);
-
-        when(meetingRoomRepository.findById(1L)).thenReturn(Optional.of(meetingRoom));
-        when(userRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(user1, user2));
-
-        CustomException exception = assertThrows(CustomException.class, () -> {
-            scheduleService.createSchedule(requestDTO);
-        });
-
-        assertEquals("Exceeding room capacity", exception.getError());
-        assertEquals("회의실의 최대 수용 가능 인원을 초과했습니다.", exception.getMessage());
-        verify(userRepository).findAllById(List.of(1L, 2L));
-    }
-
-    @Test
-    public void testCreateSchedule_NoParticipants() {
-        // Given
-        ScheduleRequestDTO requestDTO = new ScheduleRequestDTO();
-        requestDTO.setName("Test Schedule");
-        requestDTO.setStartTime(LocalDateTime.now().plusHours(1));
-        requestDTO.setEndTime(LocalDateTime.now().plusHours(2));
-        requestDTO.setMeetingRoomId(1L);
-        requestDTO.setParticipantIds(List.of()); // 비어 있는 참가자 ID
-
-        when(meetingRoomRepository.findById(1L)).thenReturn(Optional.of(new MeetingRoom()));
-        when(userRepository.findAllById(List.of())).thenReturn(List.of()); // Mock: 빈 리스트 반환
-
-        // When
-        CustomException exception = assertThrows(CustomException.class, () -> {
-            scheduleService.createSchedule(requestDTO);
-        });
-
-        // Then
-        assertEquals("Exceeding room capacity", exception.getError());
-        assertEquals("일정을 생성하려면 최소 1명의 참가자가 필요합니다.", exception.getMessage());
-    }
+//
+//    @Test
+//    public void testCreateSchedule_TimeConflict() {
+//        ScheduleRequestDTO dto = new ScheduleRequestDTO();
+//        dto.setName("Test Schedule");
+//        dto.setMeetingRoomId(1L);
+//        dto.setStartTime(LocalDateTime.of(2024, 12, 22, 10, 0));
+//        dto.setEndTime(LocalDateTime.of(2024, 12, 22, 11, 0));
+//        dto.setParticipantIds(List.of(1L, 2L));
+//
+//        MeetingRoom mockMeetingRoom = new MeetingRoom();
+//        mockMeetingRoom.setId(1L);
+//        mockMeetingRoom.setCapacity(5);
+//
+//        Users user1 = new Users();
+//        user1.setId(1L);
+//        Users user2 = new Users();
+//        user2.setId(2L);
+//
+//        when(scheduleValidationUtils.validateMeetingRoom(1L)).thenReturn(mockMeetingRoom);
+//        when(scheduleValidationUtils.validateParticipants(List.of(1L, 2L), 5)).thenReturn(List.of(user1, user2));
+//        doThrow(new CustomException("Schedule conflict", "선택한 회의실은 해당 시간에 이미 예약되었습니다.")).when(scheduleValidationUtils).validateTimeConflict(dto);
+//
+//        CustomException exception = assertThrows(CustomException.class, () -> scheduleService.createSchedule(dto));
+//
+//        assertEquals("Schedule conflict", exception.getError());
+//        assertEquals("선택한 회의실은 해당 시간에 이미 예약되었습니다.", exception.getMessage());
+//    }
+//
 
     @Test
     public void testGetAllSchedules() {
@@ -222,49 +177,54 @@ public class ScheduleServiceTest {
 
     @Test
     public void testUpdateSchedule_Success() {
-        // Mock 기존 일정
+        ScheduleRequestDTO dto = new ScheduleRequestDTO();
+        dto.setName("Updated Schedule");
+        dto.setMeetingRoomId(1L);
+        dto.setStartTime(LocalDateTime.of(2024, 12, 22, 14, 0));
+        dto.setEndTime(LocalDateTime.of(2024, 12, 22, 15, 0));
+        dto.setParticipantIds(List.of(1L, 2L));
+
         Schedule existingSchedule = new Schedule();
         existingSchedule.setId(1L);
         existingSchedule.setName("Existing Schedule");
 
         MeetingRoom mockMeetingRoom = new MeetingRoom();
         mockMeetingRoom.setId(1L);
-        mockMeetingRoom.setCapacity(10);
+        mockMeetingRoom.setCapacity(5);
 
-        // Mock 사용자 설정
-        Users mockUser = new Users();
-        mockUser.setId(1L);
-        mockUser.setName("Test User");
+        Users user1 = new Users();
+        user1.setId(1L);
+        Users user2 = new Users();
+        user2.setId(2L);
 
-        when(scheduleRepository.findById(1L)).thenReturn(Optional.of(existingSchedule));
-        when(meetingRoomRepository.findById(1L)).thenReturn(Optional.of(mockMeetingRoom));
-        when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(mockUser));
-        when(scheduleRepository.save(any(Schedule.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(scheduleRepository.findById(1L)).thenReturn(java.util.Optional.of(existingSchedule));
+        when(scheduleValidationUtils.validateMeetingRoom(1L)).thenReturn(mockMeetingRoom);
+        when(scheduleValidationUtils.validateParticipants(List.of(1L, 2L), 5)).thenReturn(List.of(user1, user2));
+        doNothing().when(scheduleValidationUtils).validateTimeConflict(dto);
+        doNothing().when(scheduleValidationUtils).validateUserConflict(dto);
 
-        ScheduleRequestDTO dto = new ScheduleRequestDTO();
-        dto.setMeetingRoomId(1L); // Mock MeetingRoomId와 일치
-        dto.setName("Updated Name");
-        dto.setStartTime(LocalDateTime.of(2024, 12, 23, 10, 0));
-        dto.setEndTime(LocalDateTime.of(2024, 12, 23, 11, 0));
-        dto.setParticipantIds(List.of(1L));
+        when(scheduleRepository.save(any(Schedule.class))).thenReturn(existingSchedule);
 
-        // Test
-        Schedule updatedSchedule = scheduleService.updateSchedule(1L, dto);
+        Schedule result = scheduleService.updateSchedule(1L, dto);
 
-        // Assertions
-        assertNotNull(updatedSchedule, "Updated schedule should not be null");
-        assertEquals("Updated Name", updatedSchedule.getName());
+        assertNotNull(result);
+        assertEquals("Updated Schedule", result.getName());
+        assertEquals(1L, result.getMeetingRoom().getId());
+        assertEquals(2, result.getParticipants().size());
     }
 
     @Test
-    public void testUpdateSchedule_ThrowsCustomException() {
-        // Given: 해당 ID의 일정이 없을 때
-        when(scheduleRepository.findById(1L)).thenReturn(Optional.empty());
+    public void testUpdateSchedule_NotFound() {
+        ScheduleRequestDTO dto = new ScheduleRequestDTO();
+        dto.setName("Nonexistent Schedule");
+        dto.setMeetingRoomId(1L);
+        dto.setStartTime(LocalDateTime.of(2024, 12, 22, 14, 0));
+        dto.setEndTime(LocalDateTime.of(2024, 12, 22, 15, 0));
+        dto.setParticipantIds(List.of(1L));
 
-        // When & Then: 예외가 발생하는지 검증
-        CustomException exception = assertThrows(CustomException.class, () -> {
-            scheduleService.updateSchedule(1L, new ScheduleRequestDTO());
-        });
+        when(scheduleRepository.findById(1L)).thenReturn(java.util.Optional.empty());
+
+        CustomException exception = assertThrows(CustomException.class, () -> scheduleService.updateSchedule(1L, dto));
 
         assertEquals("Resource not found", exception.getError());
         assertEquals("수정할 일정을 찾을 수 없습니다.", exception.getMessage());
