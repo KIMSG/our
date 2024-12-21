@@ -6,6 +6,7 @@ import com.our.ourroom.entity.Schedule;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +28,7 @@ public class ScheduleController {
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
     @PostMapping
-    public ResponseEntity<Schedule> createSchedule(@RequestBody ScheduleRequestDTO dto) {
+    public ResponseEntity<Schedule> createSchedule(@Valid @RequestBody ScheduleRequestDTO dto) {
 
         Schedule createdSchedule = scheduleService.createSchedule(dto);
         return ResponseEntity.status(201).body(createdSchedule);

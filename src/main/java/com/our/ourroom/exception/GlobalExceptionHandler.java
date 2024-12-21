@@ -2,6 +2,8 @@ package com.our.ourroom.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
@@ -84,4 +86,39 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
+
+    /**
+     * 400 Bad Request - 유효성 검증 실패 처리
+     * @param ex 유효성 검증 예외
+     * @param request 요청 정보
+     * @return 사용자에게 반환할 오류 응답
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest request) {
+        Map<String, Object> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                errors.put(error.getField(), error.getDefaultMessage())
+        );
+        Map<String, Object> body = new HashMap<>();
+        body.put("error", "Validation Failed");
+        body.put("details", errors);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    /**
+     * 400 Bad Request - JSON 요청 본문 오류 처리
+     * @param ex 발생한 예외
+     * @param request 요청 정보
+     * @return 사용자에게 반환할 오류 응답
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex, WebRequest request) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("error", "Malformed JSON Request");
+        body.put("details", "올바르지 않은 JSON 요청입니다. 확인 후 다시 시도해 주세요.");
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
 }
