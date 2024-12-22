@@ -23,6 +23,9 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class ScheduleServiceTest {
 
@@ -297,6 +300,37 @@ public class ScheduleServiceTest {
 
         assertEquals("Resource not found", exception.getError());
         assertEquals("수정할 일정을 찾을 수 없습니다.", exception.getMessage());
+    }
+    @Test
+    public void testRemoveParticipant_Success() {
+        // Mock 설정
+        when(scheduleParticipantRepository.existsByScheduleIdAndUserId(1L, 1L)).thenReturn(true);
+        doNothing().when(scheduleParticipantRepository).deleteByScheduleIdAndUserId(1L, 1L);
+
+        // 서비스 메서드 호출
+        assertDoesNotThrow(() -> scheduleService.removeParticipant(1L, 1L));
+
+        // Mock 호출 검증
+        verify(scheduleParticipantRepository, times(1)).existsByScheduleIdAndUserId(1L, 1L);
+        verify(scheduleParticipantRepository, times(1)).deleteByScheduleIdAndUserId(1L, 1L);
+    }
+
+    @Test
+    public void testRemoveParticipant_ReturnsFalseWhenParticipantNotExists() throws Exception {
+        // Given
+        Long scheduleId = 1L;
+        Long userId = 2L;
+
+        // Mocking repository to return false
+        when(scheduleParticipantRepository.existsByScheduleIdAndUserId(scheduleId, userId)).thenReturn(false);
+
+        // Act
+        boolean result = scheduleService.removeParticipant(scheduleId, userId);
+
+        // Assert
+        assertFalse(result); // 메서드가 false를 반환해야 함
+        verify(scheduleParticipantRepository, times(1)).existsByScheduleIdAndUserId(scheduleId, userId);
+        verify(scheduleParticipantRepository, never()).deleteByScheduleIdAndUserId(scheduleId, userId); // 삭제 메서드는 호출되지 않아야 함
     }
 
 }

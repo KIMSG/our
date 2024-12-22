@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
@@ -150,8 +151,11 @@ public class ScheduleController {
     public ResponseEntity<Map<String, Object>> removeParticipant(
             @PathVariable Long id,
             @PathVariable Long userId) {
-        scheduleService.removeParticipant(id, userId);
 
+        boolean deleted = scheduleService.removeParticipant(id, userId);
+        if (!deleted) {
+            throw new CustomException("Resource not found", "삭제할 일정에서 사용자를 찾을 수 없습니다.");
+        }
         Map<String, Object> response = new HashMap<>();
         response.put("ids", userId);
         response.put("details", "일정에 참여자가 삭제 되었습니다.");

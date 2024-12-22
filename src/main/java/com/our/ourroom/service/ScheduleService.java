@@ -122,12 +122,11 @@ public class ScheduleService {
     }
 
     @Transactional
-    public void removeParticipant(Long scheduleId, Long userId) {
-        boolean exists = scheduleParticipantRepository.existsByScheduleIdAndUserId(scheduleId, userId);
-        if (!exists) {
-            throw new CustomException("Participant not found in the schedule", "스케줄 ID에서 사용자 ID를 찾을 수 없습니다.");
+    public boolean removeParticipant(Long scheduleId, Long userId) {
+        if (!scheduleParticipantRepository.existsByScheduleIdAndUserId(scheduleId, userId)) {
+            return false;
         }
-
         scheduleParticipantRepository.deleteByScheduleIdAndUserId(scheduleId, userId);
+        return true;
     }
 }

@@ -3,12 +3,18 @@ package com.our.ourroom.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.our.ourroom.dto.ScheduleRequestDTO;
 import com.our.ourroom.entity.Schedule;
+import com.our.ourroom.entity.ScheduleParticipant;
+import com.our.ourroom.entity.Users;
 import com.our.ourroom.exception.CustomException;
+import com.our.ourroom.repository.ScheduleParticipantRepository;
+import com.our.ourroom.repository.ScheduleRepository;
+import com.our.ourroom.repository.UserRepository;
 import com.our.ourroom.service.ScheduleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -22,12 +28,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
@@ -48,6 +54,9 @@ public class ScheduleControllerTest {
     private Schedule testSchedule;
 
     private ObjectMapper objectMapper;
+
+    @MockBean
+    private ScheduleParticipantRepository scheduleParticipantRepository;
 
     @BeforeEach
     void setUp() {
@@ -258,8 +267,40 @@ public class ScheduleControllerTest {
     }
 
     @Test
-    public void testRemoveParticipant() throws Exception {
-        mockMvc.perform(delete("/schedules/1/participants/1"))
-                .andExpect(status().isNoContent());
+    public void testRemoveParticipant_Success() throws Exception {
+        // Given
+        Long scheduleId = 1L;
+        Long userId = 2L;
+
+        // Mocking the service to return true
+        when(scheduleService.removeParticipant(scheduleId, userId)).thenReturn(true);
+
+        // Perform DELETE request
+        mockMvc.perform(delete("/api/schedules/{id}/participants/{userId}", scheduleId, userId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ids").value(userId))
+                .andExpect(jsonPath("$.details").value("일정에 참여자가 삭제 되었습니다."));
+
+        // Verify that the service method was called
+        verify(scheduleService, times(1)).removeParticipant(scheduleId, userId);
     }
+
+
+    @Test
+    public void testRemoveParticipant_NotFound() throws Exception {
+        // Given
+        Long scheduleId = 1L;
+        Long userId = 2L;
+
+        // Mocking the service to return false
+        when(scheduleService.removeParticipant(scheduleId, userId)).thenReturn(false);
+
+        // Perform DELETE request
+        mockMvc.perform(delete("/api/schedules/{id}/participants/{userId}", scheduleId, userId))
+                .andExpect(status().isBadRequest()) // Change if your CustomException maps to a different status
+                .andExpect(jsonPath("$.error").value("Resource not found"))
+                .andExpect(jsonPath("$.details").value("삭제할 일정에서 사용자를 찾을 수 없습니다."));
+
+    }
+
 }
