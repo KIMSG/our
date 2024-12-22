@@ -1,6 +1,7 @@
 package com.our.ourroom.controller;
 
 import com.our.ourroom.dto.ScheduleRequestDTO;
+import com.our.ourroom.entity.Users;
 import com.our.ourroom.exception.CustomException;
 import com.our.ourroom.service.ScheduleService;
 import com.our.ourroom.entity.Schedule;
@@ -92,6 +93,19 @@ public class ScheduleController {
             @RequestBody ScheduleRequestDTO dto) {
         Schedule updatedSchedule = scheduleService.updateSchedule(id, dto);
         return ResponseEntity.ok(updatedSchedule);
+    }
+
+
+    @PostMapping("/{id}/participants")
+    public ResponseEntity<String> addParticipant(
+            @PathVariable("id") Long scheduleId,
+            @RequestBody Users users) {
+        try {
+            scheduleService.addParticipantToSchedule(scheduleId, users.getId());
+            return ResponseEntity.ok("참여자가 성공적으로 추가되었습니다.");
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
     }
 
 }

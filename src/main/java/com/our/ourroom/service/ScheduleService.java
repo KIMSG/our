@@ -2,8 +2,10 @@ package com.our.ourroom.service;
 
 import com.our.ourroom.dto.ScheduleRequestDTO;
 import com.our.ourroom.entity.MeetingRoom;
+import com.our.ourroom.entity.ScheduleParticipant;
 import com.our.ourroom.entity.Users;
 import com.our.ourroom.exception.CustomException;
+import com.our.ourroom.repository.ScheduleParticipantRepository;
 import com.our.ourroom.repository.ScheduleRepository;
 import com.our.ourroom.entity.Schedule;
 import com.our.ourroom.utils.ScheduleValidationUtils;
@@ -16,10 +18,12 @@ public class ScheduleService {
 
     private final ScheduleRepository scheduleRepository;
     private final ScheduleValidationUtils scheduleValidationUtils;
+    private final ScheduleParticipantRepository scheduleParticipantRepository;
 
-    public ScheduleService(ScheduleRepository scheduleRepository, ScheduleValidationUtils scheduleValidationUtils) {
+    public ScheduleService(ScheduleRepository scheduleRepository, ScheduleValidationUtils scheduleValidationUtils, ScheduleParticipantRepository scheduleParticipantRepository) {
         this.scheduleRepository = scheduleRepository;
         this.scheduleValidationUtils = scheduleValidationUtils;
+        this.scheduleParticipantRepository = scheduleParticipantRepository;
     }
 
     public Schedule createSchedule(ScheduleRequestDTO dto) {
@@ -78,5 +82,22 @@ public class ScheduleService {
     }
 
 
+    public void addParticipantToSchedule(Long scheduleId, Long id) {
 
+        Schedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid schedule ID"));
+
+        boolean isOverlapping = scheduleParticipantRepository.existsByUserIdAndOverlappingSchedule(
+                id, schedule.getStartTime(), schedule.getEndTime()
+        );
+
+        if (isOverlapping) {
+            throw new CustomException("users conflict", "동일 시간대에 이미 다른 회의에 참여 중입니다.");
+        }
+
+        ScheduleParticipant participant = new ScheduleParticipant();
+        participant.setScheduleId(scheduleId);
+        participant.setUserId(id);
+        scheduleParticipantRepository.save(participant);
+    }
 }

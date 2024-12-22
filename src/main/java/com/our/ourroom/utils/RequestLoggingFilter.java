@@ -20,9 +20,6 @@ public class RequestLoggingFilter implements Filter {
             throws IOException, ServletException {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
-        System.out.println("Request URI: " + httpRequest.getRequestURI());
-        System.out.println("Content-Type: " + httpRequest.getContentType());
-
         chain.doFilter(request, response);
     }
 }
