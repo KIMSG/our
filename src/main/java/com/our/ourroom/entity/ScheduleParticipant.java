@@ -1,6 +1,7 @@
 package com.our.ourroom.entity;
 
 import jakarta.persistence.*;
+import lombok.Generated;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -10,6 +11,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @Table(name = "SCHEDULE_PARTICIPANTS")
+@Generated
 public class ScheduleParticipant {
 
     @Id

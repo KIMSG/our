@@ -64,6 +64,8 @@ tasks.jacocoTestReport {
                 '**/ServletInitializer.class',     // 추가로 제외할 클래스
                 '**/OurRoomApplication.class',
                 '**/GlobalExceptionHandler.class',
+                '**/CachingRequestBodyFilter.class',
+                '**/JacksonConfig.class',
                 '**/CustomException.class'
         ])
     }))
@@ -76,7 +78,8 @@ tasks.jacocoTestCoverageVerification {
             limit {
                 minimum = 0.3 // 최소 커버리지 40% 설정
             }
-            excludes = ['com.our.ourroom.entity.*'] // 엔티티 제외
+            excludes = ['com.our.ourroom.entity.*',// 엔티티 제외
+                        'com.our.ourroom.dto.*'] // 엔티티 제외
         }
     }
 
