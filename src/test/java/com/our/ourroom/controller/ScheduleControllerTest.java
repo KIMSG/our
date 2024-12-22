@@ -1,27 +1,36 @@
 package com.our.ourroom.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.our.ourroom.dto.ScheduleRequestDTO;
 import com.our.ourroom.entity.Schedule;
+import com.our.ourroom.exception.CustomException;
 import com.our.ourroom.service.ScheduleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 
 @WebMvcTest(ScheduleController.class)
@@ -33,7 +42,12 @@ public class ScheduleControllerTest {
     @MockBean
     private ScheduleService scheduleService;
 
+    @InjectMocks
+    private ScheduleController scheduleController;
+
     private Schedule testSchedule;
+
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
@@ -41,6 +55,7 @@ public class ScheduleControllerTest {
         testSchedule = new Schedule();
         testSchedule.setId(1L);
         testSchedule.setName("Team Meeting");
+        objectMapper = new ObjectMapper();
     }
 
     @Test
@@ -140,6 +155,106 @@ public class ScheduleControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Updated Meeting"));
+    }
+
+
+    @Test
+    public void testAddParticipants_Success_MultipleIds() throws Exception {
+        // Arrange
+        Long scheduleId = 1L;
+        Map<String, Object> request = Map.of("id", List.of(10L, 11L));
+
+        doNothing().when(scheduleService).addParticipantsToSchedule(scheduleId, List.of(10L, 11L));
+
+        String requestJson = objectMapper.writeValueAsString(request);
+
+        // Act & Assert
+        mockMvc.perform(post("/api/schedules/{id}/participants", scheduleId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ids[0]").value(10L))
+                .andExpect(jsonPath("$.ids[1]").value(11L))
+                .andExpect(jsonPath("$.details").value("일정에 참여자가 등록 되었습니다."));
+
+        // Verify
+        verify(scheduleService, times(1)).addParticipantsToSchedule(scheduleId, List.of(10L, 11L));
+    }
+    @Test
+    public void testAddParticipants_Failure_NoId() throws Exception {
+        // Arrange
+        Long scheduleId = 1L;
+        Map<String, Object> request = new HashMap<>();
+
+        String requestJson = objectMapper.writeValueAsString(request);
+
+        // Act & Assert
+        mockMvc.perform(post("/api/schedules/{id}/participants", scheduleId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testAddParticipants_Failure_InvalidType() throws Exception {
+        // Arrange
+        Long scheduleId = 1L;
+        Map<String, Object> request = Map.of("id", "invalid");
+
+        String requestJson = objectMapper.writeValueAsString(request);
+
+        // Act & Assert
+        mockMvc.perform(post("/api/schedules/{id}/participants", scheduleId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
+                .andExpect(status().isBadRequest());
+    }
+
+
+    @Test
+    public void testAddParticipants_Failure_IllegalArgumentException() throws Exception {
+        // Arrange
+        Long scheduleId = 1L;
+        Map<String, Object> invalidRequest = Map.of("id", List.of("invalid")); // 유효하지 않은 데이터
+
+        // Mocking: extractUserIds에서 IllegalArgumentException 발생 설정
+        doThrow(new IllegalArgumentException()).when(scheduleService).addParticipantsToSchedule(eq(scheduleId), any());
+
+        String requestJson = objectMapper.writeValueAsString(invalidRequest);
+
+        // Act & Assert
+        mockMvc.perform(post("/api/schedules/{id}/participants", scheduleId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Invalid request"))
+                .andExpect(jsonPath("$.details").value("요청 본문이 비어있습니다."));
+    }
+
+    @Test
+    public void testExtractUserIds_SingleNumber() {
+        // Arrange
+        Object idObject = 10L; // 단일 Number 입력
+
+        // Act
+        List<Long> result = scheduleController.extractUserIds(idObject);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals(10L, result.get(0));
+    }
+
+    @Test
+    public void testExtractUserIds_SingleInteger() {
+        // Arrange
+        Object idObject = 10; // Integer 타입 입력
+
+        // Act
+        List<Long> result = scheduleController.extractUserIds(idObject);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals(10L, result.get(0));
     }
 
 }

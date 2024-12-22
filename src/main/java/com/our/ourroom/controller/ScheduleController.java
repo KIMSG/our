@@ -114,9 +114,6 @@ public class ScheduleController {
             @RequestBody Map<String, Object> request) {
         try {
             Object idObject = request.get("id");
-            if (idObject == null) {
-                throw new CustomException("INVALID_REQUEST", "id는 필수입니다.");
-            }
 
             List<Long> userIds = extractUserIds(idObject);
             scheduleService.addParticipantsToSchedule(scheduleId, userIds);
@@ -132,8 +129,8 @@ public class ScheduleController {
         }
     }
 
-    private List<Long> extractUserIds(Object idObject) {
-        if (idObject instanceof Number) {
+    List<Long> extractUserIds(Object idObject) {
+        if (idObject instanceof Long || idObject instanceof Integer) {
             // 단일 값 처리
             return List.of(((Number) idObject).longValue());
         } else if (idObject instanceof List) {

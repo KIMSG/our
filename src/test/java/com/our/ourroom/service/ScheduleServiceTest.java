@@ -3,9 +3,11 @@ package com.our.ourroom.service;
 import com.our.ourroom.dto.ScheduleRequestDTO;
 import com.our.ourroom.entity.MeetingRoom;
 import com.our.ourroom.entity.Schedule;
+import com.our.ourroom.entity.ScheduleParticipant;
 import com.our.ourroom.entity.Users;
 import com.our.ourroom.exception.CustomException;
 import com.our.ourroom.repository.MeetingRoomRepository;
+import com.our.ourroom.repository.ScheduleParticipantRepository;
 import com.our.ourroom.repository.ScheduleRepository;
 import com.our.ourroom.repository.UserRepository;
 import com.our.ourroom.utils.ScheduleValidationUtils;
@@ -29,6 +31,8 @@ public class ScheduleServiceTest {
 
     @Mock
     private ScheduleValidationUtils scheduleValidationUtils;
+    @Mock
+    private ScheduleParticipantRepository scheduleParticipantRepository;
 
     @InjectMocks
     private ScheduleService scheduleService;
@@ -39,7 +43,7 @@ public class ScheduleServiceTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        scheduleService = new ScheduleService(scheduleRepository, scheduleValidationUtils);
+//        scheduleService = new ScheduleService(scheduleRepository, scheduleValidationUtils);
 
         // 기본 요청 데이터 설정
         requestDTO = new ScheduleRequestDTO();
@@ -230,5 +234,69 @@ public class ScheduleServiceTest {
         assertEquals("수정할 일정을 찾을 수 없습니다.", exception.getMessage());
     }
 
+    @Test
+    void testAddParticipantsToSchedule_Success() {
+        // Arrange
+        Long scheduleId = 1L;
+        List<Long> userIds = List.of(10L, 11L);
+
+        Schedule schedule = new Schedule();
+        schedule.setId(scheduleId);
+        schedule.setStartTime(LocalDateTime.now().plusHours(1));
+        schedule.setEndTime(LocalDateTime.now().plusHours(2));
+
+        ScheduleParticipant participant = new ScheduleParticipant();
+        participant.setScheduleId(scheduleId);
+        participant.setUserId(10L);
+
+        when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.of(schedule));
+        when(scheduleParticipantRepository.existsByUserIdAndOverlappingSchedule(anyLong(), any(), any()))
+                .thenReturn(false);
+        when(scheduleParticipantRepository.save(any(ScheduleParticipant.class))).thenReturn(participant); // 수정
+
+        // Act & Assert
+        assertDoesNotThrow(() -> scheduleService.addParticipantsToSchedule(scheduleId, userIds));
+
+        // Verify
+        verify(scheduleParticipantRepository, times(userIds.size())).save(any(ScheduleParticipant.class));
+    }
+
+
+    @Test
+    void testAddParticipantsToSchedule_Conflict() {
+        Long scheduleId = 1L;
+        List<Long> userIds = List.of(10L, 11L);
+
+        Schedule schedule = new Schedule();
+        schedule.setId(scheduleId);
+        schedule.setStartTime(LocalDateTime.now().plusHours(1));
+        schedule.setEndTime(LocalDateTime.now().plusHours(2));
+
+        when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.of(schedule));
+        when(scheduleParticipantRepository.existsByUserIdAndOverlappingSchedule(10L, schedule.getStartTime(), schedule.getEndTime()))
+                .thenReturn(true);
+
+        CustomException exception = assertThrows(CustomException.class,
+                () -> scheduleService.addParticipantsToSchedule(scheduleId, userIds));
+
+        assertEquals("users conflict", exception.getError());
+        assertEquals("동일 시간대에 이미 다른 회의에 참여 중입니다.", exception.getMessage());
+
+        verify(scheduleParticipantRepository, never()).save(any(ScheduleParticipant.class));
+    }
+
+    @Test
+    void testAddParticipantsToSchedule_ScheduleNotFound() {
+        Long scheduleId = 1L;
+        List<Long> userIds = List.of(10L, 11L);
+
+        when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.empty());
+
+        CustomException exception = assertThrows(CustomException.class,
+                () -> scheduleService.addParticipantsToSchedule(scheduleId, userIds));
+
+        assertEquals("Resource not found", exception.getError());
+        assertEquals("수정할 일정을 찾을 수 없습니다.", exception.getMessage());
+    }
 
 }
