@@ -46,17 +46,9 @@
     - POST /schedules/{id}/participants
 - [ ] 일정에서 참여자 삭제 (`feature/schedule-participants`)
     - DELETE /schedules/{id}/participants/{userId}
-- [ ] 일정 충돌 검사 (`feature/schedule-conflict-check`)
-    - POST /schedules/conflict-check
 
 ---
 
-## 5. 로그 관리 (12.22 일)
-- [ ] 일정 로그 조회 (`feature/schedule-logs`)
-    - GET /schedules/logs
-    - 필터: 날짜 범위, 회의실 ID, 사용자 ID
-
----
 
 ## 6. 테스트 및 디버깅 (12.23 월)
 - [ ] 엔티티와 초기 데이터 테스트 (`feature/test-database`)
