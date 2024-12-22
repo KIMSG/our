@@ -7,14 +7,19 @@ import com.our.ourroom.service.ScheduleService;
 import com.our.ourroom.entity.Schedule;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "일정 API", description = "일정 관리와 관련된 API 제공")
 @RestController
@@ -95,16 +100,51 @@ public class ScheduleController {
         return ResponseEntity.ok(updatedSchedule);
     }
 
-
+    @Operation(summary = "회의에 참여자 추가",
+            description = "지정된 회의 ID에 참여자를 추가합니다. 단일 사용자 ID 또는 사용자 ID 리스트를 모두 지원합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "참여자 추가 성공"),
+            @ApiResponse(responseCode = "400", description = "입력값 오류 또는 비즈니스 로직 충돌",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @PostMapping("/{id}/participants")
-    public ResponseEntity<String> addParticipant(
+    public ResponseEntity<Map<String, Object>> addParticipants(
             @PathVariable("id") Long scheduleId,
-            @RequestBody Users users) {
+            @RequestBody Map<String, Object> request) {
         try {
-            scheduleService.addParticipantToSchedule(scheduleId, users.getId());
-            return ResponseEntity.ok("참여자가 성공적으로 추가되었습니다.");
+            Object idObject = request.get("id");
+            if (idObject == null) {
+                throw new CustomException("INVALID_REQUEST", "id는 필수입니다.");
+            }
+
+            List<Long> userIds = extractUserIds(idObject);
+            scheduleService.addParticipantsToSchedule(scheduleId, userIds);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("ids", userIds);
+            response.put("details", "일정에 참여자가 등록 되었습니다.");
+
+            return ResponseEntity.ok(response);
+
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
+            throw new CustomException("Invalid request", "요청 본문이 비어있습니다.");
+        }
+    }
+
+    private List<Long> extractUserIds(Object idObject) {
+        if (idObject instanceof Number) {
+            // 단일 값 처리
+            return List.of(((Number) idObject).longValue());
+        } else if (idObject instanceof List) {
+            // 리스트 처리
+            return ((List<?>) idObject).stream()
+                    .filter(Number.class::isInstance)
+                    .map(Number.class::cast)
+                    .map(Number::longValue)
+                    .toList();
+        } else {
+            throw new CustomException("INVALID_TYPE", "id는 숫자 또는 숫자의 리스트여야 합니다.");
         }
     }
 

@@ -82,10 +82,11 @@ public class ScheduleService {
     }
 
 
+/*  단건에 대한 사용자 id만 스케쥴에 저장할 수 있습니다.
     public void addParticipantToSchedule(Long scheduleId, Long id) {
 
         Schedule schedule = scheduleRepository.findById(scheduleId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid schedule ID"));
+                .orElseThrow(() -> new CustomException("Resource not found", "수정할 일정을 찾을 수 없습니다."));
 
         boolean isOverlapping = scheduleParticipantRepository.existsByUserIdAndOverlappingSchedule(
                 id, schedule.getStartTime(), schedule.getEndTime()
@@ -99,5 +100,23 @@ public class ScheduleService {
         participant.setScheduleId(scheduleId);
         participant.setUserId(id);
         scheduleParticipantRepository.save(participant);
+    }*/
+
+    public void addParticipantsToSchedule(Long scheduleId, List<Long> userIds) {
+        Schedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new CustomException("Resource not found", "수정할 일정을 찾을 수 없습니다."));
+
+        for (Long userId : userIds) {
+            if (scheduleParticipantRepository.existsByUserIdAndOverlappingSchedule(
+                    userId, schedule.getStartTime(), schedule.getEndTime())) {
+                throw new CustomException("users conflict", "동일 시간대에 이미 다른 회의에 참여 중입니다.");
+            }
+
+            ScheduleParticipant participant = new ScheduleParticipant();
+            participant.setScheduleId(schedule.getId());
+            participant.setUserId(userId);
+            scheduleParticipantRepository.save(participant);
+        }
     }
+
 }
