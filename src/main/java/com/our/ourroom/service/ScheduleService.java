@@ -9,7 +9,9 @@ import com.our.ourroom.repository.ScheduleParticipantRepository;
 import com.our.ourroom.repository.ScheduleRepository;
 import com.our.ourroom.entity.Schedule;
 import com.our.ourroom.utils.ScheduleValidationUtils;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -119,4 +121,13 @@ public class ScheduleService {
         }
     }
 
+    @Transactional
+    public void removeParticipant(Long scheduleId, Long userId) {
+        boolean exists = scheduleParticipantRepository.existsByScheduleIdAndUserId(scheduleId, userId);
+        if (!exists) {
+            throw new CustomException("Participant not found in the schedule", "스케줄 ID에서 사용자 ID를 찾을 수 없습니다.");
+        }
+
+        scheduleParticipantRepository.deleteByScheduleIdAndUserId(scheduleId, userId);
+    }
 }

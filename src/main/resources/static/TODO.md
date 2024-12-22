@@ -42,9 +42,9 @@
     - PUT /schedules/{id}
 - [X] 일정 삭제 (`feature/schedule-api`)
     - DELETE /schedules/{id}
-- [ ] 일정에 참여자 추가 (`feature/schedule-participants`)
+- [X] 일정에 참여자 추가 (`feature/schedule-participants`)
     - POST /schedules/{id}/participants
-- [ ] 일정에서 참여자 삭제 (`feature/schedule-participants`)
+- [X] 일정에서 참여자 삭제 (`feature/schedule-participants`)
     - DELETE /schedules/{id}/participants/{userId}
 
 ---

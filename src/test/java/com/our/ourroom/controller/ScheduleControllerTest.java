@@ -257,4 +257,9 @@ public class ScheduleControllerTest {
         assertEquals(10L, result.get(0));
     }
 
+    @Test
+    public void testRemoveParticipant() throws Exception {
+        mockMvc.perform(delete("/schedules/1/participants/1"))
+                .andExpect(status().isNoContent());
+    }
 }

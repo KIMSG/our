@@ -145,4 +145,19 @@ public class ScheduleController {
         }
     }
 
+
+    @DeleteMapping("/{id}/participants/{userId}")
+    public ResponseEntity<Map<String, Object>> removeParticipant(
+            @PathVariable Long id,
+            @PathVariable Long userId) {
+        scheduleService.removeParticipant(id, userId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("ids", userId);
+        response.put("details", "일정에 참여자가 삭제 되었습니다.");
+
+        return ResponseEntity.ok(response);
+
+    }
+
 }
