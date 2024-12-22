@@ -27,7 +27,7 @@
 - [X] 회의실 조회 (`feature/meetingroom-api`)
     - GET /rooms
     - GET /rooms/{id}
-- [ ] 회의실 예약 가능 여부 확인 (`feature/meetingroom-api`)
+- [X] 회의실 예약 가능 여부 확인 (`feature/meetingroom-api`)
     - GET /rooms/{id}/availability
 
 ---
