@@ -1,7 +1,9 @@
 package com.our.ourroom.service;
 
 import com.our.ourroom.entity.MeetingRoom;
+import com.our.ourroom.entity.Schedule;
 import com.our.ourroom.repository.MeetingRoomRepository;
+import com.our.ourroom.repository.ScheduleRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -11,12 +13,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -29,6 +33,9 @@ public class MeetingRoomServiceTest {
 
     @InjectMocks
     private MeetingRoomService meetingRoomService;
+
+    @Mock
+    private ScheduleRepository scheduleRepository;
 
     @BeforeEach
     void setUp() {
@@ -72,5 +79,42 @@ public class MeetingRoomServiceTest {
         assertEquals(10, meetingRoom1.getCapacity());
         assertEquals(1L, meetingRoom1.getId());
     }
+    @Test
+    void checkAvailability_WhenNoConflictingSchedules_ReturnsZero() {
+        // Given
+        Long roomId = 1L;
+        LocalDateTime startTime = LocalDateTime.of(2024, 12, 22, 10, 0);
+        LocalDateTime endTime = LocalDateTime.of(2024, 12, 22, 11, 0);
 
+        when(scheduleRepository.findConflictingSchedules(roomId, startTime, endTime))
+                .thenReturn(Collections.emptyList());
+
+        // When
+        int result = meetingRoomService.checkAvailability(roomId, startTime, endTime);
+
+        // Then
+        assertEquals(0, result);
+        verify(scheduleRepository, times(1)).findConflictingSchedules(roomId, startTime, endTime);
+    }
+
+    @Test
+    void checkAvailability_WhenConflictingSchedulesExist_ReturnsConflictCount() {
+        // Given
+        Long roomId = 1L;
+        LocalDateTime startTime = LocalDateTime.of(2024, 12, 22, 10, 0);
+        LocalDateTime endTime = LocalDateTime.of(2024, 12, 22, 11, 0);
+        List<Schedule> conflictingSchedules = List.of(
+                new Schedule(), new Schedule() // Mocked conflicting schedules
+        );
+
+        when(scheduleRepository.findConflictingSchedules(roomId, startTime, endTime))
+                .thenReturn(conflictingSchedules);
+
+        // When
+        int result = meetingRoomService.checkAvailability(roomId, startTime, endTime);
+
+        // Then
+        assertEquals(2, result);
+        verify(scheduleRepository, times(1)).findConflictingSchedules(roomId, startTime, endTime);
+    }
 }

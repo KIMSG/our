@@ -72,35 +72,17 @@ public class MeetingRoomController {
             @PathVariable Long id,
             HttpServletRequest request // HttpServletRequest로 원시 데이터를 읽음
     ) {
-        StringBuilder stringBuilder = new StringBuilder();
-        try (BufferedReader reader = request.getReader()) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                stringBuilder.append(line);
-            }
-        } catch (IOException e) {
-            throw new CustomException("Invalid request", "요청 본문이 비어있습니다.");
-        }
-
-        String rawJsonBody = stringBuilder.toString();
-        if (rawJsonBody.isEmpty()) {
-            throw new CustomException("Invalid request", "요청 본문이 비어있습니다.");
-        }
+        // 요청 본문 읽기
+        String rawJsonBody = getRequestBody(request);
 
         // JSON 역직렬화 테스트
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        LocalDateTime startTime = null;
-        LocalDateTime endTime = null;
-        try {
-            TimeRangeDTO timeRangeDTO = objectMapper.readValue(rawJsonBody, TimeRangeDTO.class);
-            startTime = timeRangeDTO.getStartTime();
-            endTime = timeRangeDTO.getEndTime();
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        TimeRangeDTO timeRangeDTO = parseRequestBody(rawJsonBody);
+        LocalDateTime startTime = timeRangeDTO.getStartTime();
+        LocalDateTime endTime = timeRangeDTO.getEndTime();
 
         if (endTime.isBefore(startTime)) {
             throw new CustomException("Invalid request data", "종료 시간은 시작 시간보다 빠를 수 없습니다.");
@@ -122,5 +104,32 @@ public class MeetingRoomController {
 
         return ResponseEntity.ok(response);
     }
+
+    // 요청 본문 읽기 메서드
+    protected String getRequestBody(HttpServletRequest request) {
+        StringBuilder stringBuilder = new StringBuilder();
+        try (BufferedReader reader = request.getReader()) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+        } catch (IOException e) {
+            throw new CustomException("Invalid request", "요청 본문이 비어있습니다.");
+        }
+        return stringBuilder.toString();
+    }
+
+    protected TimeRangeDTO parseRequestBody(String rawJsonBody) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        try {
+            return objectMapper.readValue(rawJsonBody, TimeRangeDTO.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
 }

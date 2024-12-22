@@ -18,12 +18,4 @@ public class CustomException extends RuntimeException {
     public String getError() {
         return error;
     }
-
-    @ExceptionHandler(CustomException.class)
-    public ResponseEntity<Map<String, Object>> handleCustomException(CustomException ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("error", ex.getError()); // 예외에서 제공된 error 메시지
-        body.put("details", ex.getMessage()); // 예외에서 제공된 details 메시지
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body); // 상태 코드 설정
-    }
 }
