@@ -20,6 +20,18 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
                                             @Param("startTime") LocalDateTime startTime,
                                             @Param("endTime") LocalDateTime endTime);
 
+    @Query("SELECT s FROM Schedule s " +
+            "WHERE s.meetingRoom.id = :meetingRoomId AND " +
+            "((:startTime BETWEEN s.startTime AND s.endTime) OR " +
+            "(:endTime BETWEEN s.startTime AND s.endTime) OR " +
+            "(s.startTime BETWEEN :startTime AND :endTime) OR " +
+            "(s.endTime BETWEEN :startTime AND :endTime))" +
+            "AND s.id NOT IN (:id) ")
+    List<Schedule> findConflictingSchedulesExcludingSelf(@Param("id") Long id,
+                                                         @Param("meetingRoomId") Long meetingRoomId,
+                                                         @Param("startTime") LocalDateTime startTime,
+                                                         @Param("endTime") LocalDateTime endTime);
+
     @Query("SELECT DISTINCT s FROM Schedule s " +
             "JOIN ScheduleParticipant sp on sp.scheduleId = s.id " +
             "WHERE ((:startTime BETWEEN s.startTime AND s.endTime) OR " +
@@ -30,4 +42,17 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     List<Schedule> findConflictingUsers(@Param("participantIds") List<Long> participantIds,
                                      @Param("startTime") LocalDateTime startTime,
                                      @Param("endTime") LocalDateTime endTime);
+
+    @Query("SELECT DISTINCT s FROM Schedule s " +
+            "JOIN ScheduleParticipant sp on sp.scheduleId = s.id " +
+            "WHERE ((:startTime BETWEEN s.startTime AND s.endTime) OR " +
+            "(:endTime BETWEEN s.startTime AND s.endTime) OR " +
+            "(s.startTime BETWEEN :startTime AND :endTime) OR " +
+            "(s.endTime BETWEEN :startTime AND :endTime))" +
+            "AND sp.scheduleId NOT IN (:id) " +
+            "AND sp.userId IN :participantIds ")
+    List<Schedule> findConflictingUsersExcludingSelf(@Param("id") Long id,
+                                                     @Param("participantIds") List<Long> participantIds,
+                                                     @Param("startTime") LocalDateTime startTime,
+                                                     @Param("endTime") LocalDateTime endTime);
 }

@@ -70,8 +70,16 @@ public class ScheduleService {
         MeetingRoom meetingRoom = scheduleValidationUtils.validateMeetingRoom(dto.getMeetingRoomId());
         List<Users> participants = scheduleValidationUtils.validateParticipants(dto.getParticipantIds(), meetingRoom.getCapacity());
 
-        scheduleValidationUtils.validateTimeConflict(dto);
-        scheduleValidationUtils.validateUserConflict(dto);
+//         기존 로직에서 시간 중복 로직을 만들 때, 자신의 스케쥴까지 포함시키는 문제가 발견된.
+//         이를 개선하기 위해 스케쥴을 수정할 때는 자신이 속한 일정에 대해서는 조회되지 않는 로직을 추가.
+//         참고.. 기존 로직은 처음 스케쥴을 생성할 때, 필요한 공통 메소드이기 때문에 유지.
+//        scheduleValidationUtils.validateTimeConflict(dto);
+
+//        기존 로직에서 참여자 중복 로직을 만들 때, 자신의 스케쥴까지 포함시키는 문제가 발견된.
+//        자신이 속한 스케쥴은 제외해야 함.
+//        scheduleValidationUtils.validateUserConflict(dto);
+        scheduleValidationUtils.validateTimeConflictExcludingSelf(id, dto);
+        scheduleValidationUtils.validateUserConflictExcludingSelf(id, dto);
 
         // 일정 정보 수정
         schedule.setName(dto.getName());

@@ -54,6 +54,8 @@ public class ScheduleValidationUtils {
     }
 
     public void validateTimeConflict(ScheduleRequestDTO dto) {
+        // [기존 로직]
+        // 입력된 시간에 대한 유효성을 체크
         if(dto.getEndTime().isBefore(dto.getStartTime())){
             throw new CustomException("Invalid request data", "종료 시간은 시작 시간보다 빠를 수 없습니다.");
         }
@@ -67,10 +69,35 @@ public class ScheduleValidationUtils {
 
     }
 
+    public void validateTimeConflictExcludingSelf(Long id, ScheduleRequestDTO dto) {
+        // [보완된 로직]
+        // - 현재 검증 중인 스케줄 ID(scheduleId)를 제외한 시간 충돌 검증.
+        if(dto.getEndTime().isBefore(dto.getStartTime())){
+            throw new CustomException("Invalid request data", "종료 시간은 시작 시간보다 빠를 수 없습니다.");
+        }
+        // 시간 충돌 검증
+        List<Schedule> conflictingSchedules = scheduleRepository.findConflictingSchedulesExcludingSelf(
+                id, dto.getMeetingRoomId(), dto.getStartTime(), dto.getEndTime());
+
+        if (!conflictingSchedules.isEmpty()) {
+            throw new CustomException("Schedule conflict", "선택한 회의실은 해당 시간에 이미 예약되었습니다.");
+        }
+    }
+
     public void validateUserConflict(ScheduleRequestDTO dto) {
 
         List<Schedule> conflictingUsers = scheduleRepository.findConflictingUsers(
                 dto.getParticipantIds(), dto.getStartTime(), dto.getEndTime());
+
+        if (!conflictingUsers.isEmpty()) {
+            throw new CustomException("User conflict", "선택한 시간 동안 일부 사용자가 이미 다른 회의에 참석 중입니다.");
+        }
+    }
+
+    public void validateUserConflictExcludingSelf(Long id, ScheduleRequestDTO dto) {
+
+        List<Schedule> conflictingUsers = scheduleRepository.findConflictingUsersExcludingSelf(
+                id, dto.getParticipantIds(), dto.getStartTime(), dto.getEndTime());
 
         if (!conflictingUsers.isEmpty()) {
             throw new CustomException("User conflict", "선택한 시간 동안 일부 사용자가 이미 다른 회의에 참석 중입니다.");
