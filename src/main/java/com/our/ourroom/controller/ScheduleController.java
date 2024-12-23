@@ -147,6 +147,15 @@ public class ScheduleController {
     }
 
 
+    @Operation(summary = "회의 참여자 삭제",
+            description = "지정된 회의 ID에 참여자를 삭제합니다. 단일 사용자 ID를 지원합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "참여자 삭제 성공"),
+            @ApiResponse(responseCode = "400", description = "입력값 오류 또는 비즈니스 로직 충돌",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
     @DeleteMapping("/{id}/participants/{userId}")
     public ResponseEntity<Map<String, Object>> removeParticipant(
             @PathVariable Long id,
