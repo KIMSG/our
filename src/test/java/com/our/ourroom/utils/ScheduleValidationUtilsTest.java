@@ -151,6 +151,50 @@ public class ScheduleValidationUtilsTest {
     }
 
     @Test
+    public void testValidateTimeConflictExcludingSelf_Success() {
+        ScheduleRequestDTO dto = new ScheduleRequestDTO();
+        dto.setMeetingRoomId(1L);
+        dto.setStartTime(LocalDateTime.of(2024, 12, 22, 10, 0));
+        dto.setEndTime(LocalDateTime.of(2024, 12, 22, 11, 0));
+
+        when(scheduleRepository.findConflictingSchedulesExcludingSelf(1L, 1L, dto.getStartTime(), dto.getEndTime())).thenReturn(List.of());
+
+        assertDoesNotThrow(() -> scheduleValidationUtils.validateTimeConflictExcludingSelf(1L, dto));
+    }
+
+    @Test
+    public void testValidateTimeConflictExcludingSelf_ConflictExists() {
+        ScheduleRequestDTO dto = new ScheduleRequestDTO();
+        dto.setMeetingRoomId(1L);
+        dto.setStartTime(LocalDateTime.of(2024, 12, 22, 10, 0));
+        dto.setEndTime(LocalDateTime.of(2024, 12, 22, 11, 0));
+
+        Schedule conflictingSchedule = new Schedule();
+        when(scheduleRepository.findConflictingSchedulesExcludingSelf(1L, 1L, dto.getStartTime(), dto.getEndTime()))
+                .thenReturn(List.of(conflictingSchedule));
+
+        CustomException exception = assertThrows(CustomException.class, () ->
+                scheduleValidationUtils.validateTimeConflictExcludingSelf(1L,dto));
+
+        assertEquals("Schedule conflict", exception.getError());
+        assertEquals("선택한 회의실은 해당 시간에 이미 예약되었습니다.", exception.getMessage());
+    }
+
+    @Test
+    public void testValidateTimeConflictExcludingSelf_EndTimeBeforeStartTime() {
+        ScheduleRequestDTO dto = new ScheduleRequestDTO();
+        dto.setMeetingRoomId(1L);
+        dto.setStartTime(LocalDateTime.of(2024, 12, 22, 15, 0));
+        dto.setEndTime(LocalDateTime.of(2024, 12, 22, 14, 0)); // 종료 시간이 시작 시간보다 이전
+
+        CustomException exception = assertThrows(CustomException.class, ()
+                -> scheduleValidationUtils.validateTimeConflictExcludingSelf(1L, dto));
+
+        assertEquals("Invalid request data", exception.getError());
+        assertEquals("종료 시간은 시작 시간보다 빠를 수 없습니다.", exception.getMessage());
+    }
+
+    @Test
     public void testValidateUserConflict_Success() {
         ScheduleRequestDTO dto = new ScheduleRequestDTO();
         dto.setParticipantIds(List.of(1L));
@@ -199,5 +243,37 @@ public class ScheduleValidationUtilsTest {
         assertEquals("일정을 생성하려면 최소 1명 이상의 참가자가 필요합니다.", exception.getMessage());
     }
 
+
+    @Test
+    public void testValidateUserConflictExcludingSelf_Success() {
+        ScheduleRequestDTO dto = new ScheduleRequestDTO();
+        dto.setParticipantIds(List.of(1L));
+        dto.setStartTime(LocalDateTime.of(2024, 12, 22, 10, 0));
+        dto.setEndTime(LocalDateTime.of(2024, 12, 22, 11, 0));
+
+        when(scheduleRepository.findConflictingUsersExcludingSelf(1L, List.of(1L), dto.getStartTime(), dto.getEndTime()))
+                .thenReturn(List.of());
+
+        assertDoesNotThrow(() -> scheduleValidationUtils.validateUserConflictExcludingSelf(1L, dto));
+    }
+
+    @Test
+    public void testValidateUserConflictExcludingSelf_ConflictExists() {
+        ScheduleRequestDTO dto = new ScheduleRequestDTO();
+        dto.setParticipantIds(List.of(1L));
+        dto.setStartTime(LocalDateTime.of(2024, 12, 22, 10, 0));
+        dto.setEndTime(LocalDateTime.of(2024, 12, 22, 11, 0));
+
+        Schedule conflictingSchedule = new Schedule();
+        when(scheduleRepository.findConflictingUsersExcludingSelf(1L,
+                List.of(1L), dto.getStartTime(), dto.getEndTime()))
+                .thenReturn(List.of(conflictingSchedule));
+
+        CustomException exception = assertThrows(CustomException.class, () ->
+                scheduleValidationUtils.validateUserConflictExcludingSelf(1L, dto));
+
+        assertEquals("User conflict", exception.getError());
+        assertEquals("선택한 시간 동안 일부 사용자가 이미 다른 회의에 참석 중입니다.", exception.getMessage());
+    }
 
 }
