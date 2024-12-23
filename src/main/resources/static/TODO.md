@@ -51,7 +51,7 @@
 
 
 ## 6. 테스트 및 디버깅 (12.23 월)
-- [ ] 엔티티와 초기 데이터 테스트 (`feature/test-database`)
+- [X] 엔티티와 초기 데이터 테스트 (`feature/test-database`)
     - Jacoco과 H2 콘솔을 활용하여 데이터 무결성 확인
 - [X] API 통합 테스트 (`feature/test-api`)
     - MockMvc로 API 호출 및 응답 테스트

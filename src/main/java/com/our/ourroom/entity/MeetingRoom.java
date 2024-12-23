@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -36,6 +37,7 @@ public class MeetingRoom {
      * 회의실 수용 인원
      * - 해당 회의실이 수용할 수 있는 최대 인원
      */
+    @Min(value = 1, message = "수용 인원은 최소 1명 이상이어야 합니다.") // 최소값 지정
     private int capacity;
 
 }
