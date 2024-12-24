@@ -26,6 +26,41 @@ Spring Boot를 사용하여 REST API 서버를 구축한 프로젝트입니다.
 - **Gradle**: 의존성 관리 및 빌드 도구
 - **JaCoCo**: 테스트 코드 커버리지 측정 도구
 
+
+# 애플리케이션 설계 구조
+
+## 1. 계층형 아키텍처 (Layered Architecture)
+- **Controller**, **Service**, **Repository**로 계층을 분리하여 설계했습니다.
+  - **Controller**: 요청을 받고 응답을 반환하는 역할.
+  - **Service**: 비즈니스 로직을 처리하는 역할.
+  - **Repository**: 데이터베이스와 직접 상호작용하는 역할.
+
+---
+
+## 2. 공통 검증 로직 분리
+- 검증 로직을 `ScheduleValidationUtils`라는 유틸리티 클래스로 분리했습니다.
+  - 시간 충돌, 사용자 유효성, 회의실 유효성 등 검증 로직을 별도로 관리하여 코드 중복을 줄이고 재사용성을 높였습니다.
+
+---
+
+## 3. 사용자 정의 예외 처리
+- `CustomException`을 사용하여 예외를 정의하고, 명확한 에러 메시지와 코드로 처리했습니다.
+- `GlobalExceptionHandler`를 통해 일관된 예외 응답을 제공하도록 설계했습니다.
+
+---
+
+## 4. RESTful API 설계
+- HTTP 메서드에 따라 작업이 명확히 구분되었습니다.
+  - **GET**: 데이터 조회.
+  - **POST**: 데이터 생성.
+  - **PUT**: 데이터 수정.
+  - **DELETE**: 데이터 삭제.
+
+## 5. 가독성을 고려한 변수 및 메서드 네이밍
+- 클래스, 메서드, 변수 이름을 직관적으로 명명하여 코드의 의도를 명확히 했습니다.
+  - 예: `validateMeetingRoom`, `validateParticipants`, `validateTimeConflict`.
+
+
 ---
 
 ## 프로젝트 구조
@@ -136,12 +171,11 @@ build/reports/jacoco/test/html/index.html
 | `room_id`      | `integer`    | 회의실 ID                |
 | `participants` | `array`      | 참여자 ID 목록           |
 
----
 
-### **응답**
+### **응답 예시**
 - **HTTP Status**: `200 OK`
 
-#### **응답 본문**
+#### **응답 본문 예시**
 ```json
 {
     "id": 1,
@@ -165,7 +199,7 @@ build/reports/jacoco/test/html/index.html
 ---
 
 
-## API 명세
+## API 명세 예시
 
 | HTTP Method | 엔드포인트              | 설명                   | 요청 본문 예시                                         |
 |-------------|-------------------------|------------------------|--------------------------------------------------|
