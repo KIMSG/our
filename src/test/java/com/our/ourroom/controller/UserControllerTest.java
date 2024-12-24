@@ -97,8 +97,9 @@ public class UserControllerTest {
 
         // GET 요청
         mockMvc.perform(get("/api/users/1"))
-                .andExpect(status().isNotFound()) // HTTP 404 상태 확인
-                .andExpect(jsonPath("$").doesNotExist()); // body가 비어 있는지 확인
+                .andExpect(status().isBadRequest()) // HTTP 404 상태 확인
+                .andExpect(jsonPath("$.error").value("Resource not found"))
+                .andExpect(jsonPath("$.details").value("사용자를 찾을 수 없습니다."));
     }
 
 }

@@ -1,7 +1,6 @@
 package com.our.ourroom.controller;
 
 import com.our.ourroom.dto.ScheduleRequestDTO;
-import com.our.ourroom.entity.Users;
 import com.our.ourroom.exception.CustomException;
 import com.our.ourroom.service.ScheduleService;
 import com.our.ourroom.entity.Schedule;
@@ -13,7 +12,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +20,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 일정 관리 API 컨트롤러
+ * 일정 생성, 조회, 수정, 삭제 등의 기능을 제공하며, 참여자 관리 기능도 포함합니다.
+ */
 @Tag(name = "일정 API", description = "일정 관리와 관련된 API 제공")
 @RestController
 @RequestMapping("/api/schedules")
@@ -29,10 +31,19 @@ public class ScheduleController {
 
     private final ScheduleService scheduleService;
 
+    /**
+     * ScheduleController 생성자
+     * @param scheduleService 일정 관리 서비스 객체
+     */
     public ScheduleController(ScheduleService scheduleService) {
         this.scheduleService = scheduleService;
     }
 
+    /**
+     * 새로운 일정 생성
+     * @param dto 일정 생성 요청 DTO
+     * @return 생성된 일정 객체
+     */
     @Operation(summary = "새로운 일정 생성", description = "새로운 일정을 생성합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "일정 생성 성공"),
@@ -46,6 +57,10 @@ public class ScheduleController {
         return ResponseEntity.status(201).body(createdSchedule);
     }
 
+    /**
+     * 모든 일정 조회
+     * @return 등록된 모든 일정 리스트
+     */
     @Operation(summary = "모든 일정 조회", description = "등록된 모든 일정을 반환합니다.")
     @ApiResponse(responseCode = "200", description = "성공적으로 일정 목록 반환")
     @GetMapping
@@ -54,6 +69,11 @@ public class ScheduleController {
         return ResponseEntity.ok(schedules);
     }
 
+    /**
+     * 특정 일정 조회
+     * @param id 조회할 일정 ID
+     * @return 조회된 일정 객체
+     */
     @Operation(summary = "특정 일정 조회", description = "ID로 특정 일정 정보를 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공적으로 일정 반환"),
@@ -70,6 +90,11 @@ public class ScheduleController {
         return ResponseEntity.ok(schedule);
     }
 
+    /**
+     * 특정 일정 삭제
+     * @param id 삭제할 일정 ID
+     * @return 삭제 성공 여부
+     */
     @Operation(summary = "특정 일정 삭제", description = "ID로 특정 일정을 삭제합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공적으로 일정 삭제"),
@@ -86,6 +111,12 @@ public class ScheduleController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * 특정 일정 수정
+     * @param id 수정할 일정 ID
+     * @param dto 수정할 일정 요청 데이터
+     * @return 수정된 일정 객체
+     */
     @Operation(summary = "일정 수정", description = "특정 일정의 정보를 수정합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "일정 수정 성공"),
@@ -101,6 +132,12 @@ public class ScheduleController {
         return ResponseEntity.ok(updatedSchedule);
     }
 
+    /**
+     * 회의 참여자 추가
+     * @param scheduleId 일정 ID
+     * @param request 참여자 정보 요청 데이터
+     * @return 참여자 추가 결과
+     */
     @Operation(summary = "회의에 참여자 추가",
             description = "지정된 회의 ID에 참여자를 추가합니다. 단일 사용자 ID 또는 사용자 ID 리스트를 모두 지원합니다.")
     @ApiResponses(value = {
@@ -130,23 +167,12 @@ public class ScheduleController {
         }
     }
 
-    List<Long> extractUserIds(Object idObject) {
-        if (idObject instanceof Long || idObject instanceof Integer) {
-            // 단일 값 처리
-            return List.of(((Number) idObject).longValue());
-        } else if (idObject instanceof List) {
-            // 리스트 처리
-            return ((List<?>) idObject).stream()
-                    .filter(Number.class::isInstance)
-                    .map(Number.class::cast)
-                    .map(Number::longValue)
-                    .toList();
-        } else {
-            throw new CustomException("INVALID_TYPE", "id는 숫자 또는 숫자의 리스트여야 합니다.");
-        }
-    }
-
-
+    /**
+     * 회의 참여자 삭제
+     * @param id 일정 ID
+     * @param userId 삭제할 사용자 ID
+     * @return 삭제 결과
+     */
     @Operation(summary = "회의 참여자 삭제",
             description = "지정된 회의 ID에 참여자를 삭제합니다. 단일 사용자 ID를 지원합니다.")
     @ApiResponses(value = {
@@ -172,5 +198,28 @@ public class ScheduleController {
         return ResponseEntity.ok(response);
 
     }
+
+
+    /**
+     * 사용자 ID 리스트 추출
+     * @param idObject ID 정보
+     * @return 사용자 ID 리스트
+     */
+    List<Long> extractUserIds(Object idObject) {
+        if (idObject instanceof Long || idObject instanceof Integer) {
+            // 단일 값 처리
+            return List.of(((Number) idObject).longValue());
+        } else if (idObject instanceof List) {
+            // 리스트 처리
+            return ((List<?>) idObject).stream()
+                    .filter(Number.class::isInstance)
+                    .map(Number.class::cast)
+                    .map(Number::longValue)
+                    .toList();
+        } else {
+            throw new CustomException("INVALID_TYPE", "id는 숫자 또는 숫자의 리스트여야 합니다.");
+        }
+    }
+
 
 }

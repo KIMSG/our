@@ -1,6 +1,7 @@
 package com.our.ourroom.controller;
 
 import com.our.ourroom.entity.Users;
+import com.our.ourroom.exception.CustomException;
 import com.our.ourroom.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -74,7 +75,7 @@ public class UserController {
         Users user = userService.getUserById(id);
         if (user == null) {
             // 사용자가 존재하지 않을 경우 HTTP 404 Not Found를 반환합니다.
-            return ResponseEntity.status(404).body(null);
+            throw new CustomException("Resource not found", "사용자를 찾을 수 없습니다.");
         }
         return ResponseEntity.ok(user);
     }

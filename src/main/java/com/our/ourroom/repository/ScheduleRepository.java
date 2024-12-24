@@ -10,6 +10,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
+
+    /**
+     * 특정 회의실에서 주어진 시간 범위와 겹치는 일정을 조회합니다.
+     * @param meetingRoomId 회의실 ID
+     * @param startTime 시작 시간
+     * @param endTime 종료 시간
+     * @return 겹치는 일정 리스트
+     */
     @Query("SELECT s FROM Schedule s " +
             "WHERE s.meetingRoom.id = :meetingRoomId AND " +
             "((:startTime BETWEEN s.startTime AND s.endTime) OR " +
@@ -20,6 +28,14 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
                                             @Param("startTime") LocalDateTime startTime,
                                             @Param("endTime") LocalDateTime endTime);
 
+    /**
+     * 특정 회의실에서 주어진 시간 범위와 겹치는 일정 중, 자신을 제외한 일정을 조회합니다.
+     * @param id 제외할 일정 ID
+     * @param meetingRoomId 회의실 ID
+     * @param startTime 시작 시간
+     * @param endTime 종료 시간
+     * @return 겹치는 일정 리스트
+     */
     @Query("SELECT s FROM Schedule s " +
             "WHERE s.meetingRoom.id = :meetingRoomId AND " +
             "((:startTime BETWEEN s.startTime AND s.endTime) OR " +
@@ -32,6 +48,13 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
                                                          @Param("startTime") LocalDateTime startTime,
                                                          @Param("endTime") LocalDateTime endTime);
 
+    /**
+     * 특정 시간 범위와 겹치는 일정에 참여 중인 사용자를 조회합니다.
+     * @param participantIds 참여자 ID 리스트
+     * @param startTime 시작 시간
+     * @param endTime 종료 시간
+     * @return 겹치는 일정 리스트
+     */
     @Query("SELECT DISTINCT s FROM Schedule s " +
             "JOIN ScheduleParticipant sp on sp.scheduleId = s.id " +
             "WHERE ((:startTime BETWEEN s.startTime AND s.endTime) OR " +
@@ -43,6 +66,14 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
                                      @Param("startTime") LocalDateTime startTime,
                                      @Param("endTime") LocalDateTime endTime);
 
+    /**
+     * 특정 시간 범위와 겹치는 일정 중 자신을 제외하고 참여 중인 사용자를 조회합니다.
+     * @param id 제외할 일정 ID
+     * @param participantIds 참여자 ID 리스트
+     * @param startTime 시작 시간
+     * @param endTime 종료 시간
+     * @return 겹치는 일정 리스트
+     */
     @Query("SELECT DISTINCT s FROM Schedule s " +
             "JOIN ScheduleParticipant sp on sp.scheduleId = s.id " +
             "WHERE ((:startTime BETWEEN s.startTime AND s.endTime) OR " +

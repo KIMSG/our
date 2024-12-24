@@ -62,17 +62,17 @@
 ## 7. 문서화 (기능 개발 마다)
 - [X] API 명세 작성 (`feature/docs-api`)
     - 각 API에 대한 요청/응답 정의
-- [ ] 프로젝트 README 작성 (`docs/readme`)
+- [X] 프로젝트 README 작성 (`docs/readme`)
     - 프로젝트 개요 및 실행 방법
     - 주요 기능 및 구조 설명
 
 ---
 
 ## 8. 최종 마무리 (12.24 화)
-- [ ] 코드 리팩토링 (`chore/refactor-code`)
+- [X] 코드 리팩토링 (`chore/refactor-code`)
     - 코드 정리 및 주석 추가
     - 불필요한 코드 및 로그 제거
-- [ ] 최종 배포 준비 (`main`)
+- [X] 최종 배포 준비 (`main`)
     - 배포 가능한 상태로 병합
 
 
